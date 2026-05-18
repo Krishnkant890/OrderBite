@@ -87,9 +87,12 @@ class _PreparationTimeDialogState extends State<PreparationTimeDialog> {
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                     ),
-                    child: Text(
-                      "CANCEL",
-                      style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "CANCEL",
+                        style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),
@@ -107,9 +110,12 @@ class _PreparationTimeDialogState extends State<PreparationTimeDialog> {
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
-                    child: Text(
-                      "CONFIRM",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "CONFIRM",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),

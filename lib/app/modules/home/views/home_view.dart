@@ -346,43 +346,69 @@ class HomeView extends GetView<HomeController> {
     }
   }
 
-  void _showStatsBottomSheet(BuildContext context) {
+  void _showStatsBottomSheet(BuildContext context, bool isToday) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildStatRow(
-                Icons.check_circle_outline,
-                "Accepted",
-                "0",
-                const Color(0xFF00897B),
-              ),
-              const Divider(height: 1, thickness: 1, color: Colors.white),
-              _buildStatRow(
-                Icons.cancel,
-                "Rejected",
-                "0",
-                const Color(0xFFD32F2F),
-              ),
-              _buildStatRow(
-                Icons.file_copy_outlined,
-                "All",
-                "0",
-                Colors.black54,
-                backgroundColor: AppColors.primary,
-              ),
-            ],
-          ),
-        );
+        return Obx(() {
+          final acceptedCount = isToday ? controller.getTodayCount('accepted') : controller.getAllCount('accepted');
+          final rejectedCount = isToday ? controller.getTodayCount('rejected') : controller.getAllCount('rejected');
+          final allCount = isToday ? controller.getTodayCount('all') : controller.getAllCount('all');
+          final currentFilter = isToday ? controller.currentTodayFilter.value : controller.currentAllFilter.value;
+
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildStatRow(
+                  Icons.check_circle_outline,
+                  "Accepted",
+                  acceptedCount.toString(),
+                  const Color(0xFF00897B),
+                  isSelected: currentFilter == 'accepted',
+                  onTap: () {
+                    if (isToday) controller.currentTodayFilter.value = 'accepted';
+                    else controller.currentAllFilter.value = 'accepted';
+                    Get.back();
+                  },
+                ),
+                const Divider(height: 1, thickness: 1, color: Colors.white),
+                _buildStatRow(
+                  Icons.cancel,
+                  "Rejected",
+                  rejectedCount.toString(),
+                  const Color(0xFFD32F2F),
+                  isSelected: currentFilter == 'rejected',
+                  onTap: () {
+                    if (isToday) controller.currentTodayFilter.value = 'rejected';
+                    else controller.currentAllFilter.value = 'rejected';
+                    Get.back();
+                  },
+                ),
+                _buildStatRow(
+                  Icons.file_copy_outlined,
+                  "All",
+                  allCount.toString(),
+                  Colors.black54,
+                  backgroundColor: AppColors.primary,
+                  textColor: Colors.white,
+                  isSelected: currentFilter == 'all',
+                  onTap: () {
+                    if (isToday) controller.currentTodayFilter.value = 'all';
+                    else controller.currentAllFilter.value = 'all';
+                    Get.back();
+                  },
+                ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
@@ -393,17 +419,23 @@ class HomeView extends GetView<HomeController> {
     String count,
     Color iconColor, {
     Color? backgroundColor,
+    Color? textColor,
+    bool isSelected = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      color: backgroundColor ?? Colors.grey[300],
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 28),
-          const SizedBox(width: 24),
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 18))),
-          Text(count, style: const TextStyle(fontSize: 18)),
-        ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        color: isSelected ? Colors.grey[400] : (backgroundColor ?? Colors.grey[300]),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 28),
+            const SizedBox(width: 24),
+            Expanded(child: Text(title, style: TextStyle(fontSize: 18, color: textColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))),
+            Text(count, style: TextStyle(fontSize: 18, color: textColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+          ],
+        ),
       ),
     );
   }
@@ -430,19 +462,19 @@ class HomeView extends GetView<HomeController> {
           if (controller.isLoadingToday.value) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (controller.todayOrders.isEmpty) {
+          if (controller.filteredTodayOrders.isEmpty) {
             return _buildNoRecordsView(
               onRefresh: () => controller.fetchTodayOrders(),
             );
           }
-          return _buildStaticOrderList(controller.todayOrders);
+          return _buildStaticOrderList(controller.filteredTodayOrders);
         }),
         Positioned(
           bottom: 16,
           right: 16,
           child: FloatingActionButton(
             backgroundColor: AppColors.primary,
-            onPressed: () => _showStatsBottomSheet(context),
+            onPressed: () => _showStatsBottomSheet(context, true),
             child: const Icon(Icons.add, color: Colors.white),
           ),
         ),
@@ -461,19 +493,19 @@ class HomeView extends GetView<HomeController> {
                 if (controller.isLoadingAll.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (controller.allOrders.isEmpty) {
+                if (controller.filteredAllOrders.isEmpty) {
                   return _buildNoRecordsView(
                     onRefresh: () => controller.fetchAllOrders(),
                   );
                 }
-                return _buildStaticOrderList(controller.allOrders);
+                return _buildStaticOrderList(controller.filteredAllOrders);
               }),
               Positioned(
                 bottom: 16,
                 right: 16,
                 child: FloatingActionButton(
                   backgroundColor: AppColors.primary,
-                  onPressed: () => _showStatsBottomSheet(context),
+                  onPressed: () => _showStatsBottomSheet(context, false),
                   child: const Icon(Icons.add, color: Colors.white),
                 ),
               ),

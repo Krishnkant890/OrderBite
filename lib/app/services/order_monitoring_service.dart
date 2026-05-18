@@ -30,6 +30,9 @@ class OrderMonitoringService extends GetxService with WidgetsBindingObserver {
   final lastCheckTime = Rxn<DateTime>();
   final pendingOrders = <OrderModel>[].obs;
   
+  // Trigger to notify other controllers (like HomeController) to refresh their lists
+  final refreshOrdersTrigger = 0.obs;
+  
   Timer? _timer;
   StreamSubscription? _connectivitySubscription;
   final Set<String> _printedOrderIds = {};
@@ -75,6 +78,7 @@ class OrderMonitoringService extends GetxService with WidgetsBindingObserver {
     if (pendingOrders.isEmpty) {
       _stopAlertSound();
     }
+    refreshOrdersTrigger.value++;
   }
 
   void toggleManualStatus(bool isOffline) async {
@@ -228,6 +232,7 @@ class OrderMonitoringService extends GetxService with WidgetsBindingObserver {
         
         if (!alreadyExists) {
           pendingOrders.add(order);
+          refreshOrdersTrigger.value++; // Refresh lists when a new order arrives
           _playAlertSound(); // Play sound for new order
           LoggerService.to.log("NEW ORDER RECEIVED: #${order.orderNo}");
           
@@ -272,46 +277,60 @@ class OrderMonitoringService extends GetxService with WidgetsBindingObserver {
               },
               onAccept: () {
                 showPreparationTimeDialog((mins) async {
-                  try {
-                    bool success = await _apiService.acceptOrder(orderNo, mins, _settings);
-                    if (success) {
-                      if (Get.isDialogOpen ?? false) Get.back(); // Close NewOrderPopup
-                      markOrderAsHandled(orderNo);
-                      // This will now print ONLY the time slip as per new logic in PrinterService
-                      await _printerService.autoPrintOrder(orderData, status: PrintStatus.accepted, extraInfo: mins.toString());
-                      
-                      Get.snackbar(
-                        "ORDER ACCEPTED",
-                        "Confirmed for $mins minutes",
-                        backgroundColor: Colors.green.shade800,
-                        colorText: Colors.white,
-                      );
-                    }
-                  } catch (e) {
-                    LoggerService.to.log("Error accepting from popup: $e");
-                  }
+                  Get.showOverlay(
+                    asyncFunction: () async {
+                      try {
+                        bool success = await _apiService.acceptOrder(orderNo, mins, _settings);
+                        if (success) {
+                          if (Get.isDialogOpen ?? false) Get.back(); // Close NewOrderPopup
+                          markOrderAsHandled(orderNo);
+                          // This will now print ONLY the time slip as per new logic in PrinterService
+                          await _printerService.autoPrintOrder(orderData, status: PrintStatus.accepted, extraInfo: mins.toString());
+                          
+                          Get.snackbar(
+                            "ORDER ACCEPTED",
+                            "Confirmed for $mins minutes",
+                            backgroundColor: Colors.green.shade800,
+                            colorText: Colors.white,
+                          );
+                        }
+                      } catch (e) {
+                        LoggerService.to.log("Error accepting from popup: $e");
+                      }
+                    },
+                    loadingWidget: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  );
                 });
               },
               onReject: () {
                 showRejectionReasonDialog((reason) async {
-                  try {
-                    bool success = await _apiService.rejectOrder(orderNo, reason, _settings);
-                    if (success) {
-                      if (Get.isDialogOpen ?? false) Get.back(); // Close NewOrderPopup
-                      markOrderAsHandled(orderNo);
-                      // This will now print ONLY the rejection reason slip
-                      await _printerService.autoPrintOrder(orderData, status: PrintStatus.rejected, extraInfo: reason);
+                  Get.showOverlay(
+                    asyncFunction: () async {
+                      try {
+                        bool success = await _apiService.rejectOrder(orderNo, reason, _settings);
+                        if (success) {
+                          if (Get.isDialogOpen ?? false) Get.back(); // Close NewOrderPopup
+                          markOrderAsHandled(orderNo);
+                          // This will now print ONLY the rejection reason slip
+                          await _printerService.autoPrintOrder(orderData, status: PrintStatus.rejected, extraInfo: reason);
 
-                      Get.snackbar(
-                        "ORDER REJECTED",
-                        "Reason: $reason",
-                        backgroundColor: Colors.red.shade800,
-                        colorText: Colors.white,
-                      );
-                    }
-                  } catch (e) {
-                    LoggerService.to.log("Error rejecting from popup: $e");
-                  }
+                          Get.snackbar(
+                            "ORDER REJECTED",
+                            "Reason: $reason",
+                            backgroundColor: Colors.red.shade800,
+                            colorText: Colors.white,
+                          );
+                        }
+                      } catch (e) {
+                        LoggerService.to.log("Error rejecting from popup: $e");
+                      }
+                    },
+                    loadingWidget: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  );
                 });
               },
             );

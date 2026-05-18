@@ -160,11 +160,6 @@ class PrinterService extends GetxService {
             await SunmiPrinter.printText(reqFor, style: SunmiTextStyle(bold: true, fontSize: 24));
             await SunmiPrinter.line();
 
-            await SunmiPrinter.printRow(cols: [
-              SunmiColumn(text: "Previous order:", width: 8),
-              SunmiColumn(text: "${order['previous_order'] ?? '0'}", width: 4, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
-            ]);
-            await SunmiPrinter.line();
             
             await SunmiPrinter.printText("Comments:");
             if (order['comments'] != null && order['comments'].toString().isNotEmpty) {
@@ -442,11 +437,6 @@ Error: ${error ?? 'None'}
         styles: const PosStyles(bold: true, height: PosTextSize.size1, fontType: PosFontType.fontA));
     bytes += generator.hr(ch: '-');
 
-    bytes += generator.row([
-      PosColumn(text: "Previous order:", width: 8, styles: const PosStyles(fontType: PosFontType.fontA)),
-      PosColumn(text: "${order['previous_order'] ?? '0'}", width: 4, styles: const PosStyles(align: PosAlign.right, fontType: PosFontType.fontA)),
-    ]);
-    bytes += generator.hr(ch: '-');
     
     bytes += generator.text("Comments:", styles: const PosStyles(fontType: PosFontType.fontA));
     if (order['comments'] != null && order['comments'].toString().isNotEmpty) {

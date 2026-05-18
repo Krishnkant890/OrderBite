@@ -56,6 +56,7 @@ class NewOrderPopup extends StatelessWidget {
             
             Text(
               "NEW ORDER RECEIVED!",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w900,
@@ -137,12 +138,15 @@ class NewOrderPopup extends StatelessWidget {
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
-                    child: Text(
-                      "ACCEPT",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15.sp,
-                        letterSpacing: 1.1,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "ACCEPT",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15.sp,
+                          letterSpacing: 1.1,
+                        ),
                       ),
                     ),
                   ),
@@ -158,13 +162,16 @@ class NewOrderPopup extends StatelessWidget {
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                     ),
-                    child: Text(
-                      "REJECT",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                        fontSize: 15.sp,
-                        letterSpacing: 1.1,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "REJECT",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                          fontSize: 15.sp,
+                          letterSpacing: 1.1,
+                        ),
                       ),
                     ),
                   ),

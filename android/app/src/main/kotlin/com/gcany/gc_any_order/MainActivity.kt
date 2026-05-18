@@ -93,8 +93,7 @@ class MainActivity : FlutterActivity() {
                                 if (ret != null) {
                                     Log.d(TAG, "SDK Response: ${ret.joinToString()}")
                                     Log.d(TAG, "Print operation accepted by SDK")
-                                    // Feed paper
-                                    printerService?.printEndAutoOut()
+                                    // Esc/Pos already handles feeding, so do not double feed.
                                     result.success("NYX_SDK_SUCCESS")
                                     return@setMethodCallHandler
                                 } else {
